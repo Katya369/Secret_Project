@@ -1,9 +1,10 @@
 //jshint esversion:6
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require('mongoose');
-
+const encrypt = require('mongoose-encryption');
 const app = express();
 app.set('view engine', 'ejs');
 
@@ -15,10 +16,13 @@ app.use(express.static("public"));
 
 mongoose.set('strictQuery', true);
 mongoose.connect('mongodb://127.0.0.1/userDB');
-const userSchema = {
+const userSchema = new mongoose.Schema( {
   email: String,
   password: String
-};
+});
+const SECRET = process.env.SECRET;
+userSchema.plugin(encrypt, { secret: SECRET, encryptedFields: ['password'] });
+
 const User = new mongoose.model('User',userSchema);
 
 app.post('/register',function(req,res){
@@ -50,7 +54,6 @@ User.findOne({email: username}, function(err,foundUser){
 });
 
 });
-
 app.get('/',function(req,res){
   res.render('home');
 });
